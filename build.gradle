@@ -1,11 +1,24 @@
 apply plugin: 'java'
+apply plugin: 'war'
+apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.plugin'
+
 version = 0.1
 sourceCompatibility = 1.8
+
 
 jar {
     manifest {
         attributes 'Main-Class': 'org.arthan.todo.ToDoApp'
     }
+}
+
+war {
+    archiveName 'todoApp.war'
+}
+
+gretty {
+    port = 9099
+    contextPath = '/todo'
 }
 
 repositories {
@@ -14,4 +27,8 @@ repositories {
 
 dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+
+    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+
+    runtime 'javax.servlet:jstl:1.2'
 }
