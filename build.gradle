@@ -2,10 +2,55 @@ apply plugin: 'java'
 apply plugin: 'war'
 apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.plugin'
 
-version = 0.1
+// Version //
+ext.versionFile = file('version.properties')
+
+task loadVersion {
+    project.version = readVersion()
+}
+
+ProjectVersion readVersion() {
+    logger.quiet('Reading the version file')
+
+    if (!versionFile.exists()) {
+        throw new GradleException("Required version file does not exit ${versionFile.canonicalPath}")
+    }
+
+    Properties versionProps = new Properties();
+
+    versionFile.withInputStream { stream -> versionProps.load(stream) }
+    new ProjectVersion(
+            versionProps.major.toInteger(),
+            versionProps.minor.toInteger(),
+            versionProps.release.toBoolean()
+    )
+}
+
+class ProjectVersion {
+    Integer major;
+    Integer minor;
+    boolean release;
+
+    ProjectVersion(Integer major, Integer minor) {
+        this(major, minor, Boolean.FALSE)
+    }
+
+    ProjectVersion(Integer major, Integer minor, boolean release) {
+        this.major = major
+        this.minor = minor
+        this.release = release
+    }
+
+    @Override
+    public String toString() {
+        return "$major.$minor${release ? '' : '-SNAPSHOT'}";
+    }
+}
+
+// Source //
 sourceCompatibility = 1.8
 
-
+// Packaging //
 jar {
     manifest {
         attributes 'Main-Class': 'org.arthan.todo.ToDoApp'
@@ -32,3 +77,21 @@ dependencies {
 
     runtime 'javax.servlet:jstl:1.2'
 }
+
+task kkk << {
+    setDescription("My test project")
+    println "Project ${name} description: ${getDescription()}"
+}
+kkk.dependsOn('printVersion')
+
+task printVersion {
+    doFirst {
+        println "Before reading the project version"
+    }
+    doLast {
+        logger.quiet("Version: ${version}")
+    }
+}
+printVersion.doFirst { println "First action" }
+printVersion << { println "Last action" }
+
