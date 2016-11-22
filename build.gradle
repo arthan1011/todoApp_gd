@@ -5,7 +5,7 @@ apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.p
 // Version //
 ext.versionFile = file('version.properties')
 
-task loadVersion {
+task loadVersion(group: 'versioning') {
     project.version = readVersion()
 }
 
@@ -44,6 +44,24 @@ class ProjectVersion {
     @Override
     public String toString() {
         return "$major.$minor${release ? '' : '-SNAPSHOT'}";
+    }
+}
+
+class ReleaseVersionTask extends DefaultTask {
+    @Input Boolean release
+    @OutputFile File destFile
+
+    ReleaseVersionTask() {
+        group = 'versioning'
+        description = 'Makes project a release version (CustomTask).'
+    }
+
+    @TaskAction
+    void start() {
+        project.version.release = true
+        ant.propertyfile(file: destFile) {
+            entry(key: 'release', type: 'string', operation: '=', value: 'true')
+        }
     }
 }
 
@@ -95,3 +113,7 @@ task printVersion {
 printVersion.doFirst { println "First action" }
 printVersion << { println "Last action" }
 
+task('makeReleaseVersion', type: ReleaseVersionTask) {
+    release = version.release
+    destFile = versionFile
+}
