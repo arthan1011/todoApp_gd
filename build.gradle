@@ -1,3 +1,6 @@
+import org.arthan.todo.build.ProjectVersion
+import org.arthan.todo.build.ReleaseVersionTask
+
 apply plugin: 'java'
 apply plugin: 'war'
 apply from: 'https://raw.github.com/akhikhl/gretty/master/pluginScripts/gretty.plugin'
@@ -24,45 +27,6 @@ ProjectVersion readVersion() {
             versionProps.minor.toInteger(),
             versionProps.release.toBoolean()
     )
-}
-
-class ProjectVersion {
-    Integer major;
-    Integer minor;
-    boolean release;
-
-    ProjectVersion(Integer major, Integer minor) {
-        this(major, minor, Boolean.FALSE)
-    }
-
-    ProjectVersion(Integer major, Integer minor, boolean release) {
-        this.major = major
-        this.minor = minor
-        this.release = release
-    }
-
-    @Override
-    public String toString() {
-        return "$major.$minor${release ? '' : '-SNAPSHOT'}";
-    }
-}
-
-class ReleaseVersionTask extends DefaultTask {
-    @Input Boolean release
-    @OutputFile File destFile
-
-    ReleaseVersionTask() {
-        group = 'versioning'
-        description = 'Makes project a release version (CustomTask).'
-    }
-
-    @TaskAction
-    void start() {
-        project.version.release = true
-        ant.propertyfile(file: destFile) {
-            entry(key: 'release', type: 'string', operation: '=', value: 'true')
-        }
-    }
 }
 
 tasks.addRule("Pattern: increment<Classifier>Version - Increments the project version classifier.") {
@@ -116,6 +80,7 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 
     providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+
 
     runtime 'javax.servlet:jstl:1.2'
 }
