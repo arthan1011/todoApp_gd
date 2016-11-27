@@ -1,4 +1,5 @@
 import org.arthan.todo.build.ProjectVersion
+import org.arthan.todo.build.ReleaseVersionListener
 import org.arthan.todo.build.ReleaseVersionTask
 
 apply plugin: 'java'
@@ -102,12 +103,13 @@ task printVersion {
 printVersion.doFirst { println "First action" }
 printVersion << { println "Last action" }
 
+/*
 task('makeReleaseVersion', type: ReleaseVersionTask) {
     release = version.release
     destFile = versionFile
-}
+}*/
 
-task createDistribution(type: Zip, dependsOn: makeReleaseVersion) {
+task createDistribution(type: Zip) {
     from war.outputs.files
 
     from(sourceSets*.allSource) {
@@ -118,6 +120,21 @@ task createDistribution(type: Zip, dependsOn: makeReleaseVersion) {
         include versionFile.name
     }
 }
+
+/*
+gradle.taskGraph.whenReady {TaskExecutionGraph taskGraph ->
+    if (taskGraph.hasTask(release)) {
+        if (!version.release) {
+            version.release = true
+            ant.propertyfile(file: versionFile) {
+                entry(key: 'release', type: 'string', operation: '=', value: 'true')
+            }
+        }
+    }
+}*/
+
+def releaseVersionListener = new ReleaseVersionListener()
+gradle.taskGraph.addTaskExecutionGraphListener(releaseVersionListener)
 
 task backupReleaseDistribution(type: Copy) {
     from createDistribution.outputs.files
